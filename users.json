@@ -10,5 +10,29 @@
         "password": "passwordpro",
         "isPremium": true,
         "customMacros": { "p": 50, "g": 20, "c": 30 }
+    },
+    "usuariofit": {
+        "username": "fituser",
+        "password": "fitpass123",
+        "isPremium": false,
+        "customMacros": { "p": 45, "g": 25, "c": 30 }
+    },
+    "nutripower": {
+        "username": "nutripower",
+        "password": "macroplus",
+        "isPremium": true,
+        "customMacros": { "p": 40, "g": 35, "c": 25 }
+    },
+    "entrenadorx": {
+        "username": "coachx",
+        "password": "strongpass",
+        "isPremium": true,
+        "customMacros": { "p": 55, "g": 20, "c": 25 }
+    },
+    "pruebafree": {
+        "username": "demo",
+        "password": "demopass",
+        "isPremium": false,
+        "customMacros": { "p": 40, "g": 30, "c": 30 }
     }
 }
