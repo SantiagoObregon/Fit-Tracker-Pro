@@ -430,7 +430,7 @@ function saveUserState() {
 
 function saveUserToDB(user) {
     usersDB[user.username] = user;
-    // Persistencia simulada con localStorage (como tu "escritura" real de nuevos datos)
+    // Persistencia simulada con localStorage
     localStorage.setItem(`user_${user.username}`, JSON.stringify(user)); 
 }
         function saveUserState() {
@@ -595,10 +595,13 @@ function saveUserToDB(user) {
                 }
                 
                 const isPremium = (username.includes('pro')); 
-                const newUser = { username, password, isPremium, customMacros: { p: 40, g: 30, c: 30 } };
-                saveUserToDB(newUser); 
-                
-                userState.isLoggedIn = true;
+            // La contraseña debe estar en el objeto para que se guarde correctamente
+            const newUser = { username, password, isPremium, customMacros: { p: 40, g: 30, c: 30 } };
+            
+            // **CLAVE:** Esto guarda el nuevo usuario en localStorage
+            saveUserToDB(newUser); 
+            
+            userState.isLoggedIn = true;
                 userState.username = username;
                 userState.isPremium = isPremium;
                 userState.customMacros = newUser.customMacros;
@@ -922,5 +925,6 @@ function saveUserToDB(user) {
     </script>
 </body>
 </html>
+
 
 
