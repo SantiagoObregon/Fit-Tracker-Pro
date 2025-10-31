@@ -355,20 +355,26 @@ const GITHUB_USERS_JSON_URL = 'https://raw.githubusercontent.com/SantiagoObregon
 async function loadUserState() {
             // 1. Cargar la DB desde users.json (simulación de backend)
             try {
-    const response = await fetch(GITHUB_USERS_JSON_URL, { cache: 'no-store' }); // evita cache
+    const response = await fetch(GITHUB_USERS_JSON_URL, { cache: 'no-store' });
     if (response.ok) {
         const jsonUsers = await response.json();
 
-        // Guarda los usuarios en memoria en minúsculas
-        Object.keys(jsonUsers).forEach(key => {
-            const lowercaseKey = key.toLowerCase();
-            usersDB[lowercaseKey] = jsonUsers[key];
-            usersDB[lowercaseKey].username = lowercaseKey;
+        // ✅ Interpretar correctamente los objetos internos
+        Object.values(jsonUsers).forEach(userObj => {
+            if (userObj.username) {
+                const usernameLower = userObj.username.toLowerCase();
+                usersDB[usernameLower] = {
+                    username: usernameLower,
+                    password: userObj.password || '',
+                    isPremium: !!userObj.isPremium,
+                    customMacros: userObj.customMacros || { p: 40, g: 30, c: 30 }
+                };
+            }
         });
 
-        console.log('Usuarios cargados exitosamente desde GitHub RAW:', usersDB);
+        console.log('Usuarios cargados correctamente desde GitHub RAW:', usersDB);
     } else {
-        console.warn('No se pudo cargar users.json desde GitHub RAW. Código de estado:', response.status);
+        console.warn('No se pudo cargar users.json desde GitHub RAW. Código:', response.status);
     }
 } catch (e) {
     console.error('Error al intentar cargar users.json desde GitHub RAW:', e);
@@ -923,6 +929,7 @@ function saveUserToDB(user) {
     </script>
 </body>
 </html>
+
 
 
 
