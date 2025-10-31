@@ -355,24 +355,24 @@ const GITHUB_USERS_JSON_URL = 'https://raw.githubusercontent.com/SantiagoObregon
 async function loadUserState() {
             // 1. Cargar la DB desde users.json (simulación de backend)
             try {
-                const response = await fetch('users.json');
-                if (response.ok) {
-                    const jsonUsers = await response.json();
-                    
-                    // CORRECCIÓN 1: Iterar para asegurar que todas las claves se almacenen en MINÚSCULAS
-                    Object.keys(jsonUsers).forEach(key => {
-                        const lowercaseKey = key.toLowerCase();
-                        usersDB[lowercaseKey] = jsonUsers[key];
-                        // Asegura que el objeto interno también tenga el username en minúsculas
-                        usersDB[lowercaseKey].username = lowercaseKey; 
-                    });
-                     console.log('Usuarios cargados exitosamente desde GitHub.');
-                } else {
-                     console.warn('No se pudo cargar users.json. (Verifica la URL si no estás en un servidor web).');
-                }
-            } catch (e) {
-                console.error('Error al intentar cargar users.json (posiblemente CORS o archivo inexistente):', e);
-            }
+    const response = await fetch(GITHUB_USERS_JSON_URL, { cache: 'no-store' }); // evita cache
+    if (response.ok) {
+        const jsonUsers = await response.json();
+
+        // Guarda los usuarios en memoria en minúsculas
+        Object.keys(jsonUsers).forEach(key => {
+            const lowercaseKey = key.toLowerCase();
+            usersDB[lowercaseKey] = jsonUsers[key];
+            usersDB[lowercaseKey].username = lowercaseKey;
+        });
+
+        console.log('Usuarios cargados exitosamente desde GitHub RAW:', usersDB);
+    } else {
+        console.warn('No se pudo cargar users.json desde GitHub RAW. Código de estado:', response.status);
+    }
+} catch (e) {
+    console.error('Error al intentar cargar users.json desde GitHub RAW:', e);
+}
             
             // 2. Cargar usuarios registrados previamente en localStorage (PRIORIDAD AL LOCAL)
             for (let i = 0; i < localStorage.length; i++) {
@@ -923,6 +923,7 @@ function saveUserToDB(user) {
     </script>
 </body>
 </html>
+
 
 
 
