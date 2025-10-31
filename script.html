@@ -263,7 +263,7 @@ const baseDeDatosComida = {
 const GITHUB_USERS_JSON_URL = 'https://raw.githubusercontent.com/SantiagoObregon/Fit-Tracker-Pro/main/users.json';
 let userState = { isLoggedIn: false, username: '', isPremium: false, customMacros: { p: 40, g: 30, c: 30 } };
 let usersDB = {};
-let authMode = 'login'; // solo 'login' (registro deshabilitado)
+let authMode = 'login'; // solo inicio de sesión (registro manual)
 
 /* Cargar usuarios desde users.json (solo lectura) y luego mezclar con localStorage overrides */
 async function loadUserState() {
@@ -271,7 +271,6 @@ async function loadUserState() {
         const response = await fetch(GITHUB_USERS_JSON_URL, { cache: 'no-store' });
         if (response.ok) {
             const jsonUsers = await response.json();
-            // Usa el campo username dentro de cada objeto como clave real
             Object.values(jsonUsers).forEach(userObj => {
                 if (userObj && userObj.username) {
                     const uname = String(userObj.username).toLowerCase();
@@ -283,50 +282,17 @@ async function loadUserState() {
                     };
                 }
             });
-            console.log('Usuarios cargados desde GitHub RAW:', usersDB);
+            console.log('Usuarios Premium cargados:', usersDB);
         } else {
             console.warn('No se pudo cargar users.json. Código:', response.status);
         }
     } catch (e) {
-        console.error('Error al intentar cargar users.json desde GitHub RAW:', e);
+        console.error('Error al cargar users.json:', e);
     }
 
-    // Sobrescribe con usuarios guardados en localStorage (prioridad local para pruebas)
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('user_')) {
-            const uname = key.substring(5);
-            try {
-                const saved = JSON.parse(localStorage.getItem(key));
-                if (saved && saved.username) {
-                    usersDB[uname] = saved;
-                }
-            } catch (err) {
-                console.error('Error parseando usuario en localStorage', key, err);
-            }
-        }
-    }
-
-    // Cargar estado de sesión guardado
     const storedState = localStorage.getItem('userState');
     if (storedState) {
-        try { userState = JSON.parse(storedState); } catch (e) { /* ignore */ }
-    }
-
-    // Si hay un usuario logueado, actualizar desde usersDB
-    if (userState.isLoggedIn && userState.username && usersDB[userState.username]) {
-        const dbUser = usersDB[userState.username];
-        userState.isPremium = dbUser.isPremium;
-        userState.customMacros = dbUser.customMacros;
-    }
-
-    // Inicializa campos de macros
-    if (document.getElementById('macro-p')) {
-        const { p, g, c } = userState.customMacros;
-        document.getElementById('macro-p').value = p;
-        document.getElementById('macro-g').value = g;
-        document.getElementById('macro-c').value = c;
-        actualizarTotalMacros();
+        try { userState = JSON.parse(storedState); } catch {}
     }
 
     updateUIBasedOnState();
@@ -349,41 +315,28 @@ function updateUIBasedOnState() {
     const inputsMacros = document.querySelectorAll('#macro-settings-card input');
     const guardarMacrosBtn = document.getElementById('guardar-macros-btn');
 
-    if (userState.isLoggedIn) {
-        const profileButton = `
-            <button onclick="showProfile()" class="px-4 py-2 text-sm font-semibold rounded-lg text-primary-dark ${userState.isPremium ? 'bg-purple-400 hover:bg-purple-300' : 'bg-gray-300 hover:bg-gray-200'} transition duration-150 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                ${userState.username}
-            </button>
-            <button onclick="logout()" class="ml-2 px-4 py-2 text-sm font-semibold rounded-lg text-white border border-gray-700 hover:bg-gray-700 transition duration-150">Salir</button>
-        `;
-        authButtonsEl.innerHTML = profileButton;
+    if (userState.isLoggedIn && userState.isPremium) {
+        authButtonsEl.innerHTML = `
+            <button onclick="showProfile()" class="px-4 py-2 text-sm font-semibold rounded-lg text-primary-dark bg-purple-400 hover:bg-purple-300 transition duration-150">${userState.username}</button>
+            <button onclick="logout()" class="ml-2 px-4 py-2 text-sm font-semibold rounded-lg text-white border border-gray-700 hover:bg-gray-700 transition duration-150">Salir</button>`;
         registroComidasEl.classList.remove('hidden');
-
-        if (userState.isPremium) {
-            inputsMacros.forEach(input => input.disabled = false);
-            macroSettingsCard.classList.remove('opacity-50', 'pointer-events-none');
-            premiumTag.classList.remove('bg-red-700');
-            premiumTag.classList.add('bg-cyan-700');
-            premiumTag.textContent = 'PREMIUM';
-            guardarMacrosBtn.classList.remove('bg-gray-400'); guardarMacrosBtn.classList.add('bg-yellow-400', 'hover:bg-yellow-300');
-        } else {
-            inputsMacros.forEach(input => input.disabled = true);
-            macroSettingsCard.classList.add('opacity-50', 'pointer-events-none');
-            premiumTag.classList.remove('bg-cyan-700'); premiumTag.classList.add('bg-red-700');
-            premiumTag.textContent = 'BÁSICO';
-            guardarMacrosBtn.classList.remove('bg-yellow-400', 'hover:bg-yellow-300'); guardarMacrosBtn.classList.add('bg-gray-400');
-        }
+        inputsMacros.forEach(i => i.disabled = false);
+        macroSettingsCard.classList.remove('opacity-50','pointer-events-none');
+        premiumTag.classList.add('bg-cyan-700');
+        premiumTag.textContent = 'PREMIUM';
+        guardarMacrosBtn.classList.add('bg-yellow-400','hover:bg-yellow-300');
     } else {
-        const loginButton = `
-            <button onclick="showRegister()" class="px-4 py-2 text-sm font-semibold rounded-lg text-primary-dark bg-accent-neon hover:bg-cyan-400 transition duration-150">Registrarse</button>
-            <button onclick="showLogin()" class="ml-2 px-4 py-2 text-sm font-semibold rounded-lg text-accent-neon border border-accent-neon hover:bg-cyan-900 transition duration-150">Acceder</button>
-        `;
-        authButtonsEl.innerHTML = loginButton;
-        registroComidasEl.classList.add('hidden');
-        inputsMacros.forEach(input => input.disabled = true);
-        macroSettingsCard.classList.add('opacity-50', 'pointer-events-none');
-        premiumTag.classList.remove('bg-cyan-700'); premiumTag.classList.add('bg-red-700'); premiumTag.textContent = 'BÁSICO';
+        authButtonsEl.innerHTML = `
+            <button onclick="showRegister()" class="px-4 py-2 text-sm font-semibold rounded-lg text-primary-dark bg-accent-neon hover:bg-cyan-400 transition duration-150">Hazte Premium</button>
+            <button onclick="showLogin()" class="ml-2 px-4 py-2 text-sm font-semibold rounded-lg text-accent-neon border border-accent-neon hover:bg-cyan-900 transition duration-150">Acceder</button>`;
+        registroComidasEl.classList.remove('hidden');
+        inputsMacros.forEach(i => i.disabled = true);
+        macroSettingsCard.classList.add('opacity-50','pointer-events-none');
+        premiumTag.classList.remove('bg-cyan-700');
+        premiumTag.classList.add('bg-red-700');
+        premiumTag.textContent = 'GRATIS';
+        guardarMacrosBtn.classList.remove('bg-yellow-400');
+        guardarMacrosBtn.classList.add('bg-gray-500');
     }
 }
 
@@ -427,28 +380,27 @@ function toggleAuthModal(show) {
 }
 
 function showRegister() {
-    // Registro deshabilitado: mostramos modal con contacto (más elegante)
     const content = document.getElementById('custom-modal-content');
     content.innerHTML = `
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-bold text-accent-neon">Registro deshabilitado</h3>
+        <h3 class="text-2xl font-bold text-accent-neon">Acceso Premium</h3>
         <button onclick="closeCustomModal()" class="text-gray-400 hover:text-white p-1 rounded-full">✕</button>
       </div>
       <div class="text-sm text-gray-300">
-        <p>El registro en línea está temporalmente deshabilitado. Para crear una cuenta, por favor contáctanos:</p>
+        <p>El registro Premium se realiza manualmente. Si deseas acceso completo a las funciones exclusivas, contáctanos:</p>
         <div class="mt-4 p-4 bg-gray-900 rounded-lg border border-gray-700">
-          <p class="mb-2"><strong>Correo:</strong> 141038@encino.edu.mx</p>
-          <p><strong>Teléfono:</strong> +52 449 911 2222</p>
+          <p><strong>Correo:</strong> <a href="mailto:141038@encino.edu.mx" class="text-accent-neon hover:underline">141038@encino.edu.mx</a></p>
+          <p><strong>Teléfono:</strong> <a href="tel:+524499112222" class="text-accent-neon hover:underline">+52 449 911 2222</a></p>
         </div>
-        <p class="mt-3 text-xs text-gray-500">Puedes enviar tu solicitud con tu nickname deseado y te responderemos con instrucciones.</p>
+        <p class="mt-3 text-xs text-gray-500">Una vez creada tu cuenta, podrás iniciar sesión para habilitar las herramientas Premium.</p>
         <div class="mt-4 flex justify-end">
           <button onclick="closeCustomModal()" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600">Cerrar</button>
         </div>
       </div>
     `;
     const modal = document.getElementById('custom-modal');
-    modal.classList.add('opacity-100', 'pointer-events-auto'); modal.classList.remove('opacity-0', 'pointer-events-none');
-    const card = content.parentElement; if (card) { card.classList.remove('scale-95'); card.classList.add('scale-100'); }
+    modal.classList.add('opacity-100', 'pointer-events-auto');
+    modal.classList.remove('opacity-0', 'pointer-events-none');
 }
 
 function closeCustomModal() {
@@ -463,6 +415,13 @@ function showLogin() {
     document.getElementById('auth-submit-btn').textContent = 'Acceder';
     document.getElementById('auth-toggle-text').innerHTML = '¿No tienes cuenta? <a href="#" onclick="showRegister()" class="text-accent-neon hover:underline font-semibold">Contáctanos</a>';
     toggleAuthModal(true);
+}
+
+function logout() {
+    userState = { isLoggedIn:false, username:'', isPremium:false, customMacros:{p:40,g:30,c:30} };
+    saveUserState();
+    alertModal('Sesión cerrada.', 'info');
+    updateUIBasedOnState();
 }
 
 function showProfile() {
@@ -488,7 +447,7 @@ function handleAuthSubmit() {
 
     const storedUser = usersDB[username];
     if (!storedUser) {
-        messageEl.innerHTML = 'Usuario no registrado. <br>Para crear una cuenta, por favor contáctanos.';
+        messageEl.innerHTML = 'No existe un registro con ese nombre. Si deseas obtener acceso Premium, contáctanos.';
         messageEl.classList.remove('hidden');
         return;
     }
@@ -502,10 +461,10 @@ function handleAuthSubmit() {
     userState.isLoggedIn = true;
     userState.username = storedUser.username;
     userState.isPremium = storedUser.isPremium;
-    userState.customMacros = storedUser.customMacros || userState.customMacros;
+    userState.customMacros = storedUser.customMacros;
     saveUserState();
     toggleAuthModal(false);
-    alertModal(`Bienvenido ${storedUser.username}`, 'success');
+    alertModal(`Bienvenido ${storedUser.username} (Premium)`, 'success');
 }
 
 /* ============================
@@ -723,3 +682,4 @@ window.onload = () => {
 </script>
 </body>
 </html>
+
