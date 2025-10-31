@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIT TRACKER PRO | Macros y Rendimiento (Premium)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuración de fuente y estilos base */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Oswald:wght@500;700&display=swap');
+        
+        /* Paleta de colores Premium Oscura: Noir/Neo-Fitness */
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a; /* Fondo Oscuro Principal - Casi Negro */
+            color: #f3f4f6; /* Texto muy claro */
+        }
+        h1, h2 {
+            font-family: 'Oswald', sans-serif;
+        }
+
+        .card {
+            background-color: #171717; /* Fondo de las tarjetas - Gris oscuro */
+            border: 1px solid #374151; /* Borde sutil */
+        }
+        
+        /* Estilos específicos para la barra de scroll en contenedores oscuros */
+        .scroll-container {
+            max-height: 350px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #06b6d4 #171717; /* Acento neón sobre fondo oscuro */
+        }
+        
+        /* Webkit scrollbar styles */
+        .scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background: #171717; /* Fondo de la barra */
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: #06b6d4; /* Color del thumb (Acento) */
+            border-radius: 20px;
+            border: 2px solid #171717;
+        }
+
+        /* Estilo para inputs - Alto Contraste */
+        input:not([type="checkbox"]), select {
+            background-color: #262626 !important; /* Fondo de input oscuro */
+            border-color: #525252 !important; /* Borde de input más claro */
+            color: #f3f4f6 !important; /* Texto de input claro */
+        }
+        input:focus, select:focus {
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5) !important; /* Sombra sutil neón */
+        }
+        
+        /* Asegura que el encabezado de categoría sea pegajoso en el scroll */
+        .scroll-container table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .categoria-header {
+            position: sticky;
+            top: 40px; /* Ajustar por debajo del thead fijo */
+            z-index: 5;
+        }
+
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-dark': '#0a0a0a', /* Base principal */
+                        'card-dark': '#171717', /* Tarjetas */
+                        'accent-neon': '#06b6d4', /* Acento (Cyan) */
+                    }
+                }
+            }
+        }
+    </script>
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <header class="flex justify-between items-center p-4 card rounded-xl shadow-lg border border-gray-700">
+            <h1 class="text-3xl font-extrabold tracking-tight text-accent-neon uppercase">
+                FIT TRACKER PRO
+            </h1>
+            <div id="auth-buttons">
+                </div>
+        </header>
+
+        <div id="alert-container" class="space-y-4"></div>
+
+        <section id="seccion-calculadora" class="p-6 card rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-300 mb-4">1. Calcula tu Meta Calórica</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="peso" class="block text-sm font-medium text-gray-400">Peso (kg)</label>
+                    <input type="number" id="peso" placeholder="70" class="mt-1 block w-full rounded-lg shadow-sm p-3" required>
+                </div>
+                <div>
+                    <label for="altura" class="block text-sm font-medium text-gray-400">Altura (cm)</label>
+                    <input type="number" id="altura" placeholder="175" class="mt-1 block w-full rounded-lg shadow-sm p-3" required>
+                </div>
+                <div>
+                    <label for="edad" class="block text-sm font-medium text-gray-400">Edad</label>
+                    <input type="number" id="edad" placeholder="30" class="mt-1 block w-full rounded-lg shadow-sm p-3" required>
+                </div>
+                <div>
+                    <label for="sexo" class="block text-sm font-medium text-gray-400">Sexo</label>
+                    <select id="sexo" class="mt-1 block w-full rounded-lg shadow-sm p-3">
+                        <option value="male">Masculino</option>
+                        <option value="female">Femenino</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="actividad" class="block text-sm font-medium text-gray-400">Nivel de Actividad</label>
+                    <select id="actividad" class="mt-1 block w-full rounded-lg shadow-sm p-3">
+                        <option value="1.2">Sedentario (poco o ningún ejercicio)</option>
+                        <option value="1.375">Ligero (ejercicio 1-3 días/sem)</option>
+                        <option value="1.55">Moderado (ejercicio 3-5 días/sem)</option>
+                        <option value="1.725">Activo (ejercicio 6-7 días/sem)</option>
+                        <option value="1.9">Muy Activo (ejercicio 2 veces/día)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button onclick="calcularMetas()" class="w-full px-4 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-primary-dark bg-accent-neon hover:bg-cyan-400 transition duration-150 ease-in-out uppercase">
+                Calcular Metas 🎯
+            </button>
+            
+            <div id="resultados-metas" class="mt-6 p-4 bg-gray-900 rounded-lg hidden">
+                <h3 class="text-xl font-semibold mb-2 text-accent-neon">Tus Resultados:</h3>
+                <p>Metabolismo Basal (BMR): <span id="resultado-bmr" class="font-bold">0</span> kcal</p>
+                <p>Gasto Calórico Diario Total (TDEE): <span id="resultado-tdee" class="font-bold">0</span> kcal</p>
+                <p class="mt-2 text-lg font-bold">Meta Calórica Diaria: <span id="meta-calorica" class="font-extrabold text-2xl text-red-400">0</span> kcal (Mantenimiento)</p>
+            </div>
+            
+            <div class="mt-6 p-4 border border-gray-700 rounded-lg transition duration-300" id="macro-settings-card">
+                <h3 class="text-lg font-semibold mb-2 flex justify-between items-center text-gray-300">
+                    Ajuste de Distribución de Macros (%)
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-700 text-white" id="premium-tag">PREMIUM</span>
+                </h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label for="macro-p" class="block text-sm font-medium text-gray-400">Proteína</label>
+                        <input type="number" id="macro-p" min="0" max="100" class="mt-1 block w-full rounded-lg shadow-sm p-2 text-center" value="40">
+                    </div>
+                    <div>
+                        <label for="macro-g" class="block text-sm font-medium text-gray-400">Grasa</label>
+                        <input type="number" id="macro-g" min="0" max="100" class="mt-1 block w-full rounded-lg shadow-sm p-2 text-center" value="30">
+                    </div>
+                    <div>
+                        <label for="macro-c" class="block text-sm font-medium text-gray-400">Carbohidratos</label>
+                        <input type="number" id="macro-c" min="0" max="100" class="mt-1 block w-full rounded-lg shadow-sm p-2 text-center" value="30">
+                    </div>
+                </div>
+                <p class="text-center text-sm mt-3 font-semibold" id="macro-total">Total: 100%</p>
+                <button onclick="guardarMacros()" class="mt-4 w-full px-4 py-2 text-base font-bold rounded-xl shadow-lg text-primary-dark bg-yellow-400 hover:bg-yellow-300 transition duration-150 ease-in-out uppercase" id="guardar-macros-btn">
+                    Guardar Distribución
+                </button>
+            </div>
+        </section>
+
+        <section class="p-6 card rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-300 mb-4">2. Resumen Diario de Progreso</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-center">
+                <div class="p-4 rounded-lg bg-gray-900 border border-gray-700">
+                    <p class="text-sm text-gray-400">Calorías Consumidas</p>
+                    <p class="text-3xl font-extrabold text-accent-neon" id="total-calorias">0</p>
+                    <p class="text-xs text-gray-500">kcal</p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-900 border border-gray-700">
+                    <p class="text-sm text-gray-400">Proteína</p>
+                    <p class="text-3xl font-extrabold text-green-400" id="total-proteina">0</p>
+                    <p class="text-xs text-gray-500">g (<span id="meta-proteina">0</span>g)</p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-900 border border-gray-700">
+                    <p class="text-sm text-gray-400">Grasa</p>
+                    <p class="text-3xl font-extrabold text-red-400" id="total-grasa">0</p>
+                    <p class="text-xs text-gray-500">g (<span id="meta-grasa">0</span>g)</p>
+                </div>
+                <div class="p-4 rounded-lg bg-gray-900 border border-gray-700">
+                    <p class="text-sm text-gray-400">Carbos</p>
+                    <p class="text-3xl font-extrabold text-yellow-400" id="total-carbohidratos">0</p>
+                    <p class="text-xs text-gray-500">g (<span id="meta-carbohidratos">0</span>g)</p>
+                </div>
+            </div>
+            <div class="mt-6">
+                <p class="text-sm font-semibold mb-1 text-gray-400">Progreso Calórico: <span id="calorias-restantes">0</span> kcal restantes</p>
+                <div class="w-full bg-gray-700 rounded-full h-4">
+                    <div class="h-4 rounded-full bg-accent-neon transition-all duration-500" style="width: 0%" id="progress-bar"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="seccion-registro" class="hidden p-6 card rounded-xl shadow-lg border border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-300 mb-4">3. Registra tu Comida</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end mb-6">
+                <div class="sm:col-span-2">
+                    <label for="input-comida" class="block text-sm font-medium text-gray-400">Buscar/Seleccionar Alimento 🔍</label>
+                    <input list="lista-comidas-opciones" id="input-comida" placeholder="Ej: Pechuga de Pollo 🍗 (Escribe o haz clic)" class="mt-1 block w-full rounded-lg shadow-sm p-3" required>
+                    
+                    <datalist id="lista-comidas-opciones">
+                        </datalist>
+                </div>
+
+                <div>
+                    <label for="cantidad-gramos" class="block text-sm font-medium text-gray-400">Cantidad (gramos)</label>
+                    <input type="number" id="cantidad-gramos" value="100" min="1" class="mt-1 block w-full rounded-lg shadow-sm p-3" required>
+                </div>
+
+                <div>
+                    <button onclick="agregarComida()" class="w-full px-4 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-primary-dark bg-green-400 hover:bg-green-300 transition duration-150 ease-in-out uppercase">
+                        Añadir ➕
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-2 text-gray-300">Comidas Registradas Hoy:</h3>
+            <div class="scroll-container">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Comida</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Gramos</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Kcal</th>
+                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Macros (g)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-comidas" class="divide-y divide-gray-800">
+                        </tbody>
+                </table>
+                <p id="no-comidas-msg" class="text-gray-500 text-center py-4">Aún no has registrado comidas.</p>
+            </div>
+        </section>
+
+        <footer class="text-center text-gray-500 text-sm mt-8">
+            <p>FIT TRACKER PRO v1.0 | Profesional Edition</p>
+        </footer>
+    </div>
+    
+    <div id="auth-modal" class="fixed inset-0 bg-primary-dark bg-opacity-90 z-50 transition-opacity duration-300 opacity-0 pointer-events-none flex items-center justify-center p-4">
+        <div class="card w-full max-w-md p-6 rounded-xl shadow-2xl transform scale-95 transition-all duration-300 ease-in-out">
+            
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="auth-title" class="text-2xl font-bold text-accent-neon">Iniciar Sesión</h3>
+                <button onclick="toggleAuthModal(false)" class="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div id="auth-message" class="hidden p-3 mb-4 text-sm rounded-lg bg-red-900 text-red-300" role="alert"></div>
+            
+            <form onsubmit="event.preventDefault(); handleAuthSubmit();" class="space-y-4">
+                <div>
+                    <label for="auth-email" id="auth-email-label" class="block text-sm font-medium text-gray-400">Usuario (Nickname)</label>
+                    <input type="text" id="auth-email" class="mt-1 block w-full rounded-lg shadow-sm p-3" placeholder="Tu Nickname Único" required>
+                </div>
+                <div>
+                    <label for="auth-password" class="block text-sm font-medium text-gray-400">Contraseña</label>
+                    <input type="password" id="auth-password" class="mt-1 block w-full rounded-lg shadow-sm p-3" placeholder="Mínimo 8 caracteres" required>
+                </div>
+                <button type="submit" id="auth-submit-btn" class="w-full px-4 py-3 border border-transparent text-base font-bold rounded-xl shadow-lg text-primary-dark bg-green-400 hover:bg-green-300 transition duration-150 uppercase">
+                    Acceder
+                </button>
+            </form>
+            
+            <p class="mt-4 text-sm text-center text-gray-400" id="auth-toggle-text">
+                </p>
+        </div>
+    </div>
+    
+    <div id="custom-modal" class="fixed inset-0 bg-primary-dark bg-opacity-90 z-40 transition-opacity duration-300 opacity-0 pointer-events-none flex items-center justify-center p-4">
+        <div id="custom-modal-content" class="card w-full max-w-md p-6 rounded-xl shadow-2xl transform scale-95 transition-all duration-300 ease-in-out">
+            </div>
+    </div>
+
+
+    <script>
+        // =================================================================================
+        // ESTRUCTURA DE LA BASE DE DATOS DE COMIDAS (CON CATEGORÍAS Y EMOTICONOS)
+        // =================================================================================
+        // Valores por 100g
+        const baseDeDatosComida = {
+            "Proteínas": [
+                { nombre: "Pechuga de Pollo 🍗", caloriasPor100g: 165, proteina_g: 31, grasa_g: 3.6, carbohidhidratos_g: 0 },
+                { nombre: "Salmón 🐟", caloriasPor100g: 208, proteina_g: 20, grasa_g: 13, carbohidhidratos_g: 0 },
+                { nombre: "Huevo 🥚", caloriasPor100g: 155, proteina_g: 13, grasa_g: 11, carbohidhidratos_g: 1.1 },
+                { nombre: "Atún enlatado (en agua) 🥫", caloriasPor100g: 116, proteina_g: 25.5, grasa_g: 1.5, carbohidhidratos_g: 0 },
+                { nombre: "Bistec de Res (magro) 🥩", caloriasPor100g: 250, proteina_g: 26, grasa_g: 15, carbohidhidratos_g: 0 },
+                { nombre: "Queso Fresco 🧀", caloriasPor100g: 250, proteina_g: 16, grasa_g: 20, carbohidhidratos_g: 2 },
+                { nombre: "Yogur Natural 🥛", caloriasPor100g: 61, proteina_g: 5, grasa_g: 3.5, carbohidhidratos_g: 4.7 },
+            ],
+            "Carbohidratos y Cereales": [
+                { nombre: "Arroz Blanco 🍚", caloriasPor100g: 130, proteina_g: 2.7, grasa_g: 0.3, carbohidhidratos_g: 28 },
+                { nombre: "Pan Integral 🍞", caloriasPor100g: 247, proteina_g: 13, grasa_g: 3.6, carbohidhidratos_g: 41 },
+                { nombre: "Lentejas (cocidas) 🍲", caloriasPor100g: 116, proteina_g: 9, grasa_g: 0.4, carbohidhidratos_g: 20 },
+                { nombre: "Pasta (cocida) 🍝", caloriasPor100g: 158, proteina_g: 5.8, grasa_g: 0.9, carbohidhidratos_g: 31 },
+                { nombre: "Batata (Camote cocido) 🍠", caloriasPor100g: 76, proteina_g: 1.6, grasa_g: 0.1, carbohidhidratos_g: 18 },
+                { nombre: "Cereal de Avena (cocida) 🥣", caloriasPor100g: 68, proteina_g: 2.4, grasa_g: 1.4, carbohidhidratos_g: 12 },
+                { nombre: "Papas (Patatas cocidas) 🥔", caloriasPor100g: 87, proteina_g: 2, grasa_g: 0.1, carbohidhidratos_g: 20 },
+            ],
+            "Frutas y Verduras": [
+                { nombre: "Brócoli 🥦", caloriasPor100g: 34, proteina_g: 2.8, grasa_g: 0.4, carbohidhidratos_g: 6.6 },
+                { nombre: "Manzana 🍎", caloriasPor100g: 52, proteina_g: 0.3, grasa_g: 0.2, carbohidhidratos_g: 14 },
+                { nombre: "Plátano 🍌", caloriasPor100g: 89, proteina_g: 1.1, grasa_g: 0.3, carbohidhidratos_g: 23 },
+                { nombre: "Espinacas 🥬", caloriasPor100g: 23, proteina_g: 3, grasa_g: 0.4, carbohidhidratos_g: 3.6 },
+                { nombre: "Fresas 🍓", caloriasPor100g: 32, proteina_g: 0.7, grasa_g: 0.3, carbohidhidratos_g: 7.7 },
+            ],
+            "Grasas Saludables": [
+                { nombre: "Aguacate 🥑", caloriasPor100g: 160, proteina_g: 2, grasa_g: 15, carbohidhidratos_g: 9 },
+                { nombre: "Aceite de Oliva 💧", caloriasPor100g: 884, proteina_g: 0, grasa_g: 100, carbohidhidratos_g: 0 },
+                { nombre: "Nueces 🌰", caloriasPor100g: 654, proteina_g: 15, grasa_g: 65, carbohidhidratos_g: 14 },
+            ],
+            "Chatarra y Otros": [
+                { nombre: "Chocolate con Leche 🍫", caloriasPor100g: 531, proteina_g: 8.7, grasa_g: 30, carbohidhidratos_g: 59 },
+                { nombre: "Papas Fritas de Bolsa 🍟", caloriasPor100g: 536, proteina_g: 6.1, grasa_g: 35, carbohidhidratos_g: 50 },
+                { nombre: "Refresco de Cola 🥤", caloriasPor100g: 41, proteina_g: 0, grasa_g: 0, carbohidhidratos_g: 10.4 },
+            ]
+        };
+
+        // =================================================================================
+        // LÓGICA DE AUTENTICACIÓN Y ESTADO DE USUARIO
+        // =================================================================================
+        let userState = {
+            isLoggedIn: false,
+            username: '', 
+            isPremium: false,
+            customMacros: { p: 40, g: 30, c: 30 }
+        };
+
+        let usersDB = {}; // Base de datos de usuarios (simulada en memoria)
+        let authMode = 'login'; // 'login' o 'register'
+
+        async function loadUserState() {
+            // 1. Cargar la DB desde users.json (simulación de backend)
+            try {
+                const response = await fetch('users.json');
+                if (response.ok) {
+                    const jsonUsers = await response.json();
+                    Object.assign(usersDB, jsonUsers); 
+                } else {
+                     console.warn('No se pudo cargar users.json.');
+                }
+            } catch (e) {
+                console.error('Error al intentar cargar users.json. Asumiendo que no existe:', e);
+            }
+            
+            // 2. Fallback: Buscar usuarios registrados previamente en localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user_')) {
+                    const username = key.substring(5);
+                    const dbUser = JSON.parse(localStorage.getItem(key));
+                    if (!usersDB[username]) {
+                        usersDB[username] = dbUser;
+                    }
+                }
+            }
+            
+            // 3. Cargar estado de sesión actual
+            const storedState = localStorage.getItem('userState');
+            if (storedState) {
+                userState = JSON.parse(storedState);
+            }
+            
+            // 4. Si el usuario está logueado, actualizar el estado con los datos de la DB más reciente
+            if (userState.isLoggedIn && userState.username && usersDB[userState.username]) {
+                const dbUser = usersDB[userState.username];
+                userState.isPremium = dbUser.isPremium;
+                userState.customMacros = dbUser.customMacros;
+            }
+            
+            // 5. Inicializar UI de macros y estado general
+            if (document.getElementById('macro-p')) {
+                const { p, g, c } = userState.customMacros;
+                document.getElementById('macro-p').value = p;
+                document.getElementById('macro-g').value = g;
+                document.getElementById('macro-c').value = c;
+                actualizarTotalMacros();
+            }
+            
+            updateUIBasedOnState();
+        }
+
+        function saveUserState() {
+            localStorage.setItem('userState', JSON.stringify(userState));
+            updateUIBasedOnState();
+        }
+
+        function saveUserToDB(user) {
+            usersDB[user.username] = user;
+            // Persistencia simulada con localStorage
+            localStorage.setItem(`user_${user.username}`, JSON.stringify(user)); 
+        }
+
+        // ... (Funciones de updateUIBasedOnState, alertModal, showRegister, showLogin, handleAuthSubmit, logout, showProfile) ...
+        // Simplificado para el foco en el problema de la comida
+        
+        function updateUIBasedOnState() {
+            const authButtonsEl = document.getElementById('auth-buttons');
+            const registroComidasEl = document.getElementById('seccion-registro');
+            const macroSettingsCard = document.getElementById('macro-settings-card');
+            const premiumTag = document.getElementById('premium-tag');
+            const inputsMacros = document.querySelectorAll('#macro-settings-card input');
+            const guardarMacrosBtn = document.getElementById('guardar-macros-btn');
+
+            if (userState.isLoggedIn) {
+                const profileButton = `
+                    <button onclick="showProfile()" class="px-4 py-2 text-sm font-semibold rounded-lg text-primary-dark ${userState.isPremium ? 'bg-purple-400 hover:bg-purple-300' : 'bg-gray-300 hover:bg-gray-200'} transition duration-150 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        ${userState.username}
+                    </button>
+                    <button onclick="logout()" class="ml-2 px-4 py-2 text-sm font-semibold rounded-lg text-white border border-gray-700 hover:bg-gray-700 transition duration-150">
+                        Salir
+                    </button>
+                `;
+                authButtonsEl.innerHTML = profileButton;
+                registroComidasEl.classList.remove('hidden');
+                
+                if (userState.isPremium) {
+                    inputsMacros.forEach(input => input.disabled = false);
+                    macroSettingsCard.classList.remove('opacity-50', 'pointer-events-none');
+                    premiumTag.classList.remove('bg-red-700');
+                    premiumTag.classList.add('bg-cyan-700');
+                    premiumTag.textContent = 'PREMIUM';
+                    guardarMacrosBtn.classList.remove('bg-gray-400');
+                    guardarMacrosBtn.classList.add('bg-yellow-400', 'hover:bg-yellow-300');
+                } else {
+                    inputsMacros.forEach(input => input.disabled = true);
+                    macroSettingsCard.classList.add('opacity-50', 'pointer-events-none');
+                    premiumTag.classList.remove('bg-cyan-700');
+                    premiumTag.classList.add('bg-red-700');
+                    premiumTag.textContent = 'BÁSICO';
+                    guardarMacrosBtn.classList.remove('bg-yellow-400', 'hover:bg-yellow-300');
+                    guardarMacrosBtn.classList.add('bg-gray-400');
+                }
+
+            } else {
+                const loginButton = `
+                    <button onclick="showRegister()" class="px-4 py-2 text-sm font-semibold rounded-lg text-primary-dark bg-accent-neon hover:bg-cyan-400 transition duration-150">
+                        Registrarse
+                    </button>
+                    <button onclick="showLogin()" class="ml-2 px-4 py-2 text-sm font-semibold rounded-lg text-accent-neon border border-accent-neon hover:bg-cyan-900 transition duration-150">
+                        Acceder
+                    </button>
+                `;
+                authButtonsEl.innerHTML = loginButton;
+                registroComidasEl.classList.add('hidden');
+                inputsMacros.forEach(input => input.disabled = true);
+                macroSettingsCard.classList.add('opacity-50', 'pointer-events-none');
+                premiumTag.classList.remove('bg-cyan-700');
+                premiumTag.classList.add('bg-red-700');
+                premiumTag.textContent = 'BÁSICO';
+            }
+        }
+        
+        function alertModal(message, type = 'info') {
+            const container = document.getElementById('alert-container');
+            const colorClasses = {
+                'success': 'bg-green-800 text-green-300 border-green-700',
+                'error': 'bg-red-800 text-red-300 border-red-700',
+                'info': 'bg-blue-800 text-blue-300 border-blue-700',
+                'profile': 'bg-gray-800 text-gray-300 border-gray-700',
+            };
+            
+            const alertHtml = `
+                <div class="p-4 rounded-xl shadow-lg border ${colorClasses[type]} flex justify-between items-center transition-opacity duration-300 opacity-100" role="alert">
+                    <div class="flex-grow">${message}</div>
+                    <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 ml-4 font-bold">✕</button>
+                </div>
+            `;
+            
+            container.innerHTML = alertHtml;
+            setTimeout(() => {
+                const alertElement = container.querySelector('.opacity-100');
+                if (alertElement) {
+                    alertElement.classList.add('opacity-0');
+                    setTimeout(() => alertElement.remove(), 300);
+                }
+            }, 7000);
+        }
+
+        function toggleAuthModal(show) {
+            const modal = document.getElementById('auth-modal');
+            const card = modal.querySelector('.card');
+            if (show) {
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                card.classList.add('scale-95');
+                card.classList.remove('scale-100');
+                document.getElementById('auth-message').classList.add('hidden'); 
+                document.getElementById('auth-password').value = ''; 
+            }
+        }
+
+        function showRegister() {
+            authMode = 'register';
+            document.getElementById('auth-title').textContent = 'Crear Cuenta';
+            document.getElementById('auth-submit-btn').textContent = 'Registrarse';
+            document.getElementById('auth-toggle-text').innerHTML = '¿Ya tienes cuenta? <a href="#" onclick="showLogin()" class="text-accent-neon hover:underline font-semibold">Iniciar Sesión</a>';
+            document.getElementById('auth-email').type = 'text'; 
+            document.getElementById('auth-email').placeholder = 'Tu Nickname Único'; 
+            document.getElementById('auth-email-label').textContent = 'Usuario (Nickname)'; 
+            document.getElementById('auth-password').placeholder = 'Mínimo 8 caracteres';
+            toggleAuthModal(true);
+        }
+
+        function showLogin() {
+            authMode = 'login';
+            document.getElementById('auth-title').textContent = 'Iniciar Sesión';
+            document.getElementById('auth-submit-btn').textContent = 'Acceder';
+            document.getElementById('auth-toggle-text').innerHTML = '¿No tienes cuenta? <a href="#" onclick="showRegister()" class="text-accent-neon hover:underline font-semibold">Registrarse</a>';
+            document.getElementById('auth-email').type = 'text'; 
+            document.getElementById('auth-email').placeholder = 'Tu Nickname Único'; 
+            document.getElementById('auth-email-label').textContent = 'Usuario (Nickname)'; 
+            document.getElementById('auth-password').placeholder = 'Contraseña'; 
+            toggleAuthModal(true);
+        }
+
+        function handleAuthSubmit() {
+            const username = document.getElementById('auth-email').value.toLowerCase().trim(); 
+            const password = document.getElementById('auth-password').value;
+            const messageEl = document.getElementById('auth-message');
+            messageEl.classList.add('hidden');
+
+            if (username.length === 0 || password.length < 8) { 
+                messageEl.textContent = 'El Usuario/Nickname no puede estar vacío y la contraseña debe tener al menos 8 caracteres.';
+                messageEl.classList.remove('hidden');
+                return;
+            }
+
+            const storedUser = usersDB[username];
+
+            if (authMode === 'register') {
+                if (storedUser) {
+                    messageEl.textContent = 'Este Nickname ya está registrado. Intenta iniciar sesión.';
+                    messageEl.classList.remove('hidden');
+                    return;
+                }
+                
+                const isPremium = (username.includes('pro')); 
+                const newUser = { username, password, isPremium, customMacros: { p: 40, g: 30, c: 30 } };
+                saveUserToDB(newUser); 
+                
+                userState.isLoggedIn = true;
+                userState.username = username;
+                userState.isPremium = isPremium;
+                userState.customMacros = newUser.customMacros;
+                
+                saveUserState();
+                toggleAuthModal(false);
+                alertModal(`¡Registro exitoso para ${username}! ${isPremium ? 'Acceso Premium activado.' : ''}`, 'success');
+                
+            } else { // Login
+                if (!storedUser) {
+                    messageEl.textContent = 'Usuario/Nickname no encontrado. Regístrate.';
+                    messageEl.classList.remove('hidden');
+                    return;
+                }
+                
+                if (storedUser.password !== password) {
+                    messageEl.textContent = 'Contraseña incorrecta.';
+                    messageEl.classList.remove('hidden');
+                    return;
+                }
+                
+                userState.isLoggedIn = true;
+                userState.username = storedUser.username;
+                userState.isPremium = storedUser.isPremium;
+                userState.customMacros = storedUser.customMacros;
+                
+                saveUserState();
+                toggleAuthModal(false);
+                alertModal(`¡Bienvenido de nuevo, ${storedUser.username}!`, 'success');
+            }
+        }
+        
+        function logout() {
+            userState = { isLoggedIn: false, username: '', isPremium: false, customMacros: { p: 40, g: 30, c: 30 } };
+            saveUserState();
+            localStorage.removeItem('comidasHoy');
+            alertModal('Has cerrado sesión.', 'info');
+            metaCaloriasDiarias = 0;
+            totalCaloriasConsumidas = 0;
+            comidasHoy = [];
+            actualizarResumen();
+            document.getElementById('resultado-bmr').textContent = '0';
+            document.getElementById('resultado-tdee').textContent = '0';
+            document.getElementById('meta-calorica').textContent = '0';
+        }
+
+        // =================================================================================
+        // LÓGICA DE RASTREO (Corregido y con Categoría integrada)
+        // =================================================================================
+
+        let metaCaloriasDiarias = 0;
+        let totalCaloriasConsumidas = 0;
+        let comidasHoy = JSON.parse(localStorage.getItem('comidasHoy')) || [];
+
+        // CORRECCIÓN 1: Obtener la data de la comida. Ahora incluye la categoría
+        function getDataComida(nombre) {
+            const nombreExacto = nombre.trim();
+            for (const categoria in baseDeDatosComida) {
+                const comida = baseDeDatosComida[categoria].find(item => item.nombre.trim() === nombreExacto);
+                if (comida) {
+                    // Retorna la data de la comida y su categoría
+                    return { ...comida, categoria }; 
+                }
+            }
+            return null; 
+        }
+
+        function agregarComida() {
+            if (!userState.isLoggedIn) {
+                alertModal("Debes iniciar sesión para registrar comidas.", 'error');
+                return;
+            }
+            if (metaCaloriasDiarias === 0) {
+                alertModal("Por favor, calcula tu Meta Calórica Diaria (Paso 1) antes de registrar comidas.", 'error');
+                return;
+            }
+
+            const nombreComida = document.getElementById('input-comida').value.trim(); 
+            const gramos = parseFloat(document.getElementById('cantidad-gramos').value);
+
+            if (!nombreComida || isNaN(gramos) || gramos <= 0) {
+                alertModal("Por favor, selecciona un alimento válido (desde el menú) e ingresa una cantidad válida en gramos.", 'error');
+                return;
+            }
+
+            // Aquí es donde la corrección funciona: se asegura un match exacto con el nombre del datalist
+            const data = getDataComida(nombreComida); 
+            if (!data) {
+                alertModal(`El alimento "${nombreComida}" no se encuentra en la base de datos o el nombre no coincide exactamente con el menú.`, 'error');
+                return; 
+            }
+            
+            const factor = gramos / 100;
+            
+            const calorias = Math.round(data.caloriasPor100g * factor);
+            const proteina = Math.round(data.proteina_g * factor);
+            const grasa = Math.round(data.grasa_g * factor);
+            const carbohidratos = Math.round(data.carbohidhidratos_g * factor);
+
+            // Se añade la categoría al objeto de la comida registrada
+            const nuevaComida = { nombre: data.nombre, gramos, calorias, proteina, grasa, carbohidratos, id: Date.now(), categoria: data.categoria };
+            comidasHoy.push(nuevaComida);
+            
+            document.getElementById('input-comida').value = ''; 
+            document.getElementById('cantidad-gramos').value = '100'; 
+
+            localStorage.setItem('comidasHoy', JSON.stringify(comidasHoy));
+            actualizarResumen();
+            alertModal(`¡${data.nombre} (${calorias} kcal) añadido!`, 'success');
+        }
+        
+        function actualizarResumen() {
+            // Cálculos (misma lógica)
+            totalCaloriasConsumidas = comidasHoy.reduce((sum, comida) => sum + comida.calorias, 0);
+            const totalProteina = comidasHoy.reduce((sum, comida) => sum + comida.proteina, 0);
+            const totalGrasa = comidasHoy.reduce((sum, comida) => sum + comida.grasa, 0);
+            const totalCarbos = comidasHoy.reduce((sum, comida) => sum + comida.carbohidratos, 0);
+
+            document.getElementById('total-calorias').textContent = totalCaloriasConsumidas;
+            document.getElementById('total-proteina').textContent = totalProteina;
+            document.getElementById('total-grasa').textContent = totalGrasa;
+            document.getElementById('total-carbohidratos').textContent = totalCarbos;
+
+            // Actualizar barra de progreso (misma lógica)
+            const restantes = metaCaloriasDiarias - totalCaloriasConsumidas;
+            document.getElementById('calorias-restantes').textContent = restantes >= 0 ? restantes : 0;
+            let porcentaje = (totalCaloriasConsumidas / metaCaloriasDiarias) * 100;
+            porcentaje = Math.min(porcentaje, 100); 
+
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${porcentaje}%`;
+            
+            if (totalCaloriasConsumidas > metaCaloriasDiarias) {
+                progressBar.classList.add('bg-red-500');
+                progressBar.classList.remove('bg-accent-neon');
+            } else {
+                progressBar.classList.add('bg-accent-neon');
+                progressBar.classList.remove('bg-red-500');
+            }
+            
+            // 4. Implementación de Separación por Categorías (Mejorada)
+            const listaComidasEl = document.getElementById('lista-comidas');
+            listaComidasEl.innerHTML = '';
+            document.getElementById('no-comidas-msg').classList.toggle('hidden', comidasHoy.length > 0);
+
+            // 1. Agrupar comidas por categoría
+            const comidasAgrupadas = comidasHoy.reduce((acc, comida) => {
+                const categoria = comida.categoria || "Sin Categoría"; // Usa la categoría guardada
+                if (!acc[categoria]) {
+                    acc[categoria] = [];
+                }
+                acc[categoria].push(comida);
+                return acc;
+            }, {});
+
+            // 2. Iterar sobre las categorías en orden (si existen comidas en esa categoría)
+            const ordenCategorias = Object.keys(baseDeDatosComida); 
+            
+            ordenCategorias.forEach(categoria => {
+                const comidasEnCategoria = comidasAgrupadas[categoria];
+                
+                if (comidasEnCategoria && comidasEnCategoria.length > 0) {
+                    // Añadir encabezado de categoría Fijo
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = 'categoria-header';
+                    headerRow.innerHTML = `
+                        <td colspan="4" class="px-3 py-2 text-left text-xs font-extrabold text-accent-neon bg-gray-900 sticky top-[44px] border-b-2 border-accent-neon">
+                            ${categoria.toUpperCase()} (${comidasEnCategoria.length})
+                        </td>
+                    `;
+                    listaComidasEl.appendChild(headerRow);
+
+                    // Añadir comidas
+                    comidasEnCategoria.forEach(comida => {
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-gray-800 transition duration-150';
+                        row.innerHTML = `
+                            <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-300">${comida.nombre}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-400">${comida.gramos}g</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-accent-neon">${comida.calorias}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-400">
+                                P: ${comida.proteina}g | G: ${comida.grasa}g | C: ${comida.carbohidratos}g
+                                <button onclick="eliminarComida(${comida.id})" class="ml-2 text-red-500 hover:text-red-400 transition">✕</button>
+                            </td>
+                        `;
+                        listaComidasEl.appendChild(row);
+                    });
+                }
+            });
+        }
+        
+        // ... (Funciones de Metas y Macros) ...
+        function calcularMetas() {
+            const peso = parseFloat(document.getElementById('peso').value);
+            const altura = parseFloat(document.getElementById('altura').value);
+            const edad = parseInt(document.getElementById('edad').value);
+            const sexo = document.getElementById('sexo').value;
+            const actividad = parseFloat(document.getElementById('actividad').value);
+
+            if (!peso || !altura || !edad) {
+                alertModal("Por favor, ingresa Peso, Altura y Edad.", 'error');
+                return;
+            }
+
+            let bmr;
+            if (sexo === 'male') {
+                bmr = (10 * peso) + (6.25 * altura) - (5 * edad) + 5;
+            } else {
+                bmr = (10 * peso) + (6.25 * altura) - (5 * edad) - 161;
+            }
+
+            const tdee = Math.round(bmr * actividad);
+            
+            metaCaloriasDiarias = tdee;
+
+            document.getElementById('resultado-bmr').textContent = Math.round(bmr);
+            document.getElementById('resultado-tdee').textContent = tdee;
+            document.getElementById('meta-calorica').textContent = metaCaloriasDiarias;
+            document.getElementById('resultados-metas').classList.remove('hidden');
+
+            actualizarMetasMacros();
+            actualizarResumen();
+            alertModal(`Meta de Mantenimiento calculada: ${metaCaloriasDiarias} kcal.`, 'success');
+        }
+
+        function actualizarTotalMacros() {
+            const p = parseInt(document.getElementById('macro-p').value) || 0;
+            const g = parseInt(document.getElementById('macro-g').value) || 0;
+            const c = parseInt(document.getElementById('macro-c').value) || 0;
+            const total = p + g + c;
+            
+            const totalEl = document.getElementById('macro-total');
+            totalEl.textContent = `Total: ${total}%`;
+            
+            if (total !== 100) {
+                totalEl.classList.add('text-red-400');
+                totalEl.classList.remove('text-green-400');
+            } else {
+                totalEl.classList.add('text-green-400');
+                totalEl.classList.remove('text-red-400');
+            }
+            return total;
+        }
+
+        document.querySelectorAll('#macro-settings-card input').forEach(input => {
+            input.addEventListener('input', actualizarTotalMacros);
+        });
+
+        function guardarMacros() {
+            if (!userState.isPremium) {
+                alertModal("Solo usuarios Premium pueden guardar distribuciones de macros personalizadas.", 'error');
+                return;
+            }
+
+            const total = actualizarTotalMacros();
+            if (total !== 100) {
+                alertModal("La suma de los porcentajes de macros debe ser exactamente 100%.", 'error');
+                return;
+            }
+
+            const p = parseInt(document.getElementById('macro-p').value);
+            const g = parseInt(document.getElementById('macro-g').value);
+            const c = parseInt(document.getElementById('macro-c').value);
+
+            userState.customMacros = { p, g, c };
+            
+            if (usersDB[userState.username]) {
+                usersDB[userState.username].customMacros = userState.customMacros;
+                localStorage.setItem(`user_${userState.username}`, JSON.stringify(usersDB[userState.username]));
+            }
+            
+            saveUserState();
+            actualizarMetasMacros();
+            alertModal("Distribución de macros guardada y aplicada exitosamente.", 'success');
+        }
+
+        function actualizarMetasMacros() {
+            if (metaCaloriasDiarias === 0) return;
+
+            const { p, g, c } = userState.customMacros;
+            
+            const proteinaKcal = metaCaloriasDiarias * (p / 100);
+            const grasaKcal = metaCaloriasDiarias * (g / 100);
+            const carbohidratosKcal = metaCaloriasDiarias * (c / 100);
+            
+            const proteinaG = Math.round(proteinaKcal / 4);
+            const grasaG = Math.round(grasaKcal / 9);
+            const carbohidratosG = Math.round(carbohidratosKcal / 4);
+
+            document.getElementById('meta-proteina').textContent = proteinaG;
+            document.getElementById('meta-grasa').textContent = grasaG;
+            document.getElementById('meta-carbohidratos').textContent = carbohidratosG;
+        }
+
+        // =================================================================================
+        // INICIALIZACIÓN
+        // =================================================================================
+
+        window.onload = () => {
+            loadUserState(); 
+            actualizarResumen(); 
+
+            const dataList = document.getElementById('lista-comidas-opciones');
+            
+            // Poblar el Datalist con opciones exactas para garantizar el match
+            Object.keys(baseDeDatosComida).forEach(categoria => {
+                const headerOption = document.createElement('option');
+                headerOption.label = `--- ${categoria} ---`;
+                headerOption.value = ''; 
+                headerOption.disabled = true;
+                dataList.appendChild(headerOption);
+                
+                baseDeDatosComida[categoria].sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(comida => {
+                    const option = document.createElement('option');
+                    option.value = comida.nombre;
+                    dataList.appendChild(option);
+                });
+            });
+        };
+
+    </script>
+</body>
+</html>
