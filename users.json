@@ -10,10 +10,5 @@
         "password": "passwordpro",
         "isPremium": true,
         "customMacros": { "p": 50, "g": 20, "c": 30 }
-    },
-    "usuariopro2": {
-        "username": "oscar",
-        "password": "oskomosko",
-        "isPremium": true,
-        "customMacros": { "p": 50, "g": 20, "c": 30 }
+    }
 }
