@@ -355,7 +355,6 @@ const GITHUB_USERS_JSON_URL = 'https://raw.githubusercontent.com/SantiagoObregon
 async function loadUserState() {
             // 1. Cargar la DB desde users.json (simulación de backend)
             try {
-                // Asume que la URL 'users.json' se resuelve a tu archivo RAW de GitHub
                 const response = await fetch('users.json');
                 if (response.ok) {
                     const jsonUsers = await response.json();
@@ -369,22 +368,20 @@ async function loadUserState() {
                     });
                      console.log('Usuarios cargados exitosamente desde GitHub.');
                 } else {
-                     console.warn('No se pudo cargar users.json.');
+                     console.warn('No se pudo cargar users.json. (Verifica la URL si no estás en un servidor web).');
                 }
             } catch (e) {
-                console.error('Error al intentar cargar users.json. Asumiendo que no existe:', e);
+                console.error('Error al intentar cargar users.json (posiblemente CORS o archivo inexistente):', e);
             }
             
-            // 2. Fallback: Buscar usuarios registrados previamente en localStorage
-            // CORRECCIÓN 2: Los usuarios de localStorage DEBEN SOBRESCRIBIR a los de GitHub, 
-            // ya que representan los cambios más recientes (nuevos registros o macros guardados).
+            // 2. Cargar usuarios registrados previamente en localStorage (PRIORIDAD AL LOCAL)
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key.startsWith('user_')) {
                     const username = key.substring(5); // El username del localStorage ya está en minúsculas
                     try {
                         const dbUser = JSON.parse(localStorage.getItem(key));
-                        // SE ELIMINÓ LA CONDICIÓN 'if (!usersDB[username])' para garantizar la sobrescritura.
+                        // CORRECCIÓN 2: Sobrescribir. Garantiza que los nuevos registros o cambios de macros se mantengan.
                         usersDB[username] = dbUser; 
                     } catch (e) {
                          console.error(`Error al parsear usuario ${username} de localStorage`, e);
@@ -392,6 +389,10 @@ async function loadUserState() {
                 }
             }
             
+            // *** PASO DE DEPURACIÓN CRÍTICO ***
+            console.log("Contenido final de usersDB después de cargar GitHub y localStorage:", usersDB);
+
+
             // 3. Cargar estado de sesión actual
             const storedState = localStorage.getItem('userState');
             if (storedState) {
@@ -399,7 +400,7 @@ async function loadUserState() {
             }
             
             // 4. Si el usuario está logueado, actualizar el estado con los datos de la DB más reciente
-            // Nota: Aquí el userState.username también debe estar en minúsculas
+            // La búsqueda en usersDB[userState.username] ahora funcionará porque ambas claves están en minúsculas.
             if (userState.isLoggedIn && userState.username && usersDB[userState.username]) {
                 const dbUser = usersDB[userState.username];
                 userState.isPremium = dbUser.isPremium;
@@ -416,6 +417,7 @@ async function loadUserState() {
             }
             
             updateUIBasedOnState();
+
         }
 // Las funciones saveUserState y saveUserToDB se mantienen igual, usando localStorage
 // para manejar el registro de nuevos usuarios y los cambios de macros.
@@ -921,6 +923,7 @@ function saveUserToDB(user) {
     </script>
 </body>
 </html>
+
 
 
 
