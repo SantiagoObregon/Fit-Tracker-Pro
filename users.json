@@ -1,0 +1,14 @@
+{
+    "usuariobase": {
+        "username": "test",
+        "password": "password",
+        "isPremium": false,
+        "customMacros": { "p": 40, "g": 30, "c": 30 }
+    },
+    "usuariopro": {
+        "username": "testpro",
+        "password": "passwordpro",
+        "isPremium": true,
+        "customMacros": { "p": 50, "g": 20, "c": 30 }
+    }
+}
