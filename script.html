@@ -341,57 +341,91 @@
         let usersDB = {}; // Base de datos de usuarios (simulada en memoria)
         let authMode = 'login'; // 'login' o 'register'
 
-        async function loadUserState() {
-            // 1. Cargar la DB desde users.json (simulación de backend)
-            try {
-                const response = await fetch('users.json');
-                if (response.ok) {
-                    const jsonUsers = await response.json();
-                    Object.assign(usersDB, jsonUsers); 
-                } else {
-                     console.warn('No se pudo cargar users.json.');
-                }
-            } catch (e) {
-                console.error('Error al intentar cargar users.json. Asumiendo que no existe:', e);
-            }
-            
-            // 2. Fallback: Buscar usuarios registrados previamente en localStorage
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('user_')) {
-                    const username = key.substring(5);
-                    const dbUser = JSON.parse(localStorage.getItem(key));
-                    if (!usersDB[username]) {
-                        usersDB[username] = dbUser;
-                    }
-                }
-            }
-            
-            // 3. Cargar estado de sesión actual
-            const storedState = localStorage.getItem('userState');
-            if (storedState) {
-                userState = JSON.parse(storedState);
-            }
-            
-            // 4. Si el usuario está logueado, actualizar el estado con los datos de la DB más reciente
-            if (userState.isLoggedIn && userState.username && usersDB[userState.username]) {
-                const dbUser = usersDB[userState.username];
-                userState.isPremium = dbUser.isPremium;
-                userState.customMacros = dbUser.customMacros;
-            }
-            
-            // 5. Inicializar UI de macros y estado general
-            if (document.getElementById('macro-p')) {
-                const { p, g, c } = userState.customMacros;
-                document.getElementById('macro-p').value = p;
-                document.getElementById('macro-g').value = g;
-                document.getElementById('macro-c').value = c;
-                actualizarTotalMacros();
-            }
-            
-            updateUIBasedOnState();
-        }
+        // =================================================================================
+// LÓGICA DE AUTENTICACIÓN Y ESTADO DE USUARIO (MODIFICADA PARA LEER DE GITHUB)
+// =================================================================================
 
+// ... (userState y usersDB se mantienen)
+
+// **IMPORTANTE:** Reemplaza el placeholder con la ruta RAW de tu archivo en GitHub.
+// Ejemplo: https://raw.githubusercontent.com/miusuario/mi-repo/main/users.json
+const GITHUB_USERS_JSON_URL = 'https://raw.githubusercontent.com/[TU_USUARIO_GITHUB]/[TU_REPOSITORIO]/main/users.json';
+
+
+async function loadUserState() {
+    // 1. Cargar la DB desde users.json (lectura desde GitHub)
+    try {
+        console.log('Intentando cargar usuarios predefinidos desde GitHub...');
+        const response = await fetch(GITHUB_USERS_JSON_URL);
+        
+        if (response.ok) {
+            const jsonUsers = await response.json();
+            // Asegúrate de que las claves estén en minúsculas
+            Object.keys(jsonUsers).forEach(key => {
+                usersDB[key.toLowerCase()] = jsonUsers[key];
+            });
+            console.log('Usuarios cargados exitosamente desde GitHub.');
+        } else {
+             // Esto puede ocurrir si el archivo no existe o la URL es incorrecta.
+             console.warn('No se pudo cargar users.json desde la URL especificada o el archivo no existe.');
+        }
+    } catch (e) {
+        // Esto captura errores de red
+        console.error('Error de red al intentar cargar users.json:', e);
+    }
+    
+    // 2. Cargar/Sobrescribir usuarios registrados previamente en localStorage
+    // (Esto simula la persistencia de nuevos usuarios registrados por el cliente)
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('user_')) {
+            const username = key.substring(5);
+            const dbUser = JSON.parse(localStorage.getItem(key));
+            // Los usuarios de localStorage sobrescriben a los de GitHub si tienen el mismo nombre
+            usersDB[username] = dbUser; 
+        }
+    }
+    
+    // 3. Cargar estado de sesión actual
+    const storedState = localStorage.getItem('userState');
+    if (storedState) {
+        userState = JSON.parse(storedState);
+    }
+    
+    // 4. Si el usuario está logueado, actualizar el estado
+    if (userState.isLoggedIn && userState.username && usersDB[userState.username]) {
+        const dbUser = usersDB[userState.username];
+        userState.isPremium = dbUser.isPremium;
+        userState.customMacros = dbUser.customMacros;
+    } else {
+        // Asegurar que si el estado está corrupto, se resetee
+        userState.isLoggedIn = false;
+    }
+    
+    // 5. Inicializar UI de macros y estado general
+    if (document.getElementById('macro-p')) {
+        const { p, g, c } = userState.customMacros;
+        document.getElementById('macro-p').value = p;
+        document.getElementById('macro-g').value = g;
+        document.getElementById('macro-c').value = c;
+        actualizarTotalMacros();
+    }
+    
+    updateUIBasedOnState();
+}
+
+// Las funciones saveUserState y saveUserToDB se mantienen igual, usando localStorage
+// para manejar el registro de nuevos usuarios y los cambios de macros.
+function saveUserState() {
+    localStorage.setItem('userState', JSON.stringify(userState));
+    updateUIBasedOnState();
+}
+
+function saveUserToDB(user) {
+    usersDB[user.username] = user;
+    // Persistencia simulada con localStorage (como tu "escritura" real de nuevos datos)
+    localStorage.setItem(`user_${user.username}`, JSON.stringify(user)); 
+}
         function saveUserState() {
             localStorage.setItem('userState', JSON.stringify(userState));
             updateUIBasedOnState();
