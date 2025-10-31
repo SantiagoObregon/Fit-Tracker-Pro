@@ -376,13 +376,20 @@ async function loadUserState() {
     
     // 2. Cargar/Sobrescribir usuarios registrados previamente en localStorage
     // (Esto simula la persistencia de nuevos usuarios registrados por el cliente)
+    // 2. Cargar/Sobrescribir usuarios registrados previamente en localStorage
+    // ESTA SECCIÓN DEBE RECARGAR LOS USUARIOS REGISTRADOS POR EL CLIENTE
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.startsWith('user_')) {
             const username = key.substring(5);
-            const dbUser = JSON.parse(localStorage.getItem(key));
-            // Los usuarios de localStorage sobrescriben a los de GitHub si tienen el mismo nombre
-            usersDB[username] = dbUser; 
+            try {
+                const dbUser = JSON.parse(localStorage.getItem(key));
+                // Los usuarios de localStorage sobrescriben a los de GitHub si tienen el mismo nombre
+                // Esto es crucial para mantener los datos más recientes (como los macros personalizados)
+                usersDB[username] = dbUser; 
+            } catch (e) {
+                console.error(`Error al parsear usuario ${username} de localStorage`, e);
+            }
         }
     }
     
@@ -915,4 +922,5 @@ function saveUserToDB(user) {
     </script>
 </body>
 </html>
+
 
